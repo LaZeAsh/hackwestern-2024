@@ -16,6 +16,7 @@ interface IdentityFormProps {
   initialData?: Partial<IdentityFormData>;
   errors?: string[];
   showValidationErrors?: boolean;
+  apiEndpoint?: string;
 }
 
 const IdentityForm = ({
@@ -27,6 +28,7 @@ const IdentityForm = ({
   },
   errors = [],
   showValidationErrors = false,
+  // apiEndpoint = '/api/identity',
 }: IdentityFormProps) => {
   const [formData, setFormData] = React.useState<IdentityFormData>({
     name: initialData.name || "",
@@ -42,7 +44,7 @@ const IdentityForm = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };

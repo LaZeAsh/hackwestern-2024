@@ -29,6 +29,52 @@ const FormPreview = ({
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleConfirm = async () => {
+    try {
+      // First, detect if this face matches any existing records
+      const detectResponse = await fetch('http://localhost:5000/detect_face', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          img_url: photoUrl,
+        }),
+      });
+
+      if (!detectResponse.ok) {
+        throw new Error(`HTTP error! status: ${detectResponse.status}`);
+      }
+
+      const matchData = await detectResponse.json();
+      
+      if (matchData.name === "Match Not Found") {
+        // If no match found, upload the new face
+        const uploadResponse = await fetch('http://localhost:5000/upload_face', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            img_url: photoUrl,
+            name: formData.name,
+            dateOfBirth: formData.dateOfBirth,
+            cityOfBirth: formData.cityOfBirth,
+          }),
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`HTTP error! status: ${uploadResponse.status}`);
+        }
+      }
+
+      onConfirm(); // Call the original onConfirm handler
+    } catch (error) {
+      console.error('Error:', error);
+      // You might want to add error handling here
+    }
+  };
+
   return (
     <Card className="w-full max-w-[800px] bg-background p-6">
       <div className="flex flex-col md:flex-row gap-6">
@@ -67,7 +113,7 @@ const FormPreview = ({
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
-            <Button className="flex-1" onClick={onConfirm}>
+            <Button className="flex-1" onClick={handleConfirm}>
               <Check className="h-4 w-4 mr-2" />
               Confirm
             </Button>

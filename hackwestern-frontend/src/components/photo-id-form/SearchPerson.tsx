@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import axios from 'axios';
 
 interface PersonResult {
   photo: string;
@@ -18,13 +19,61 @@ const SearchPerson = ({
   onBack = () => {},
   searchPhoto = "",
 }: SearchPersonProps) => {
-  // Simulated search result with placeholder data
-  const result: PersonResult = {
-    photo: "https://dummyimage.com/256x256/cccccc/666666&text=Match",
-    name: "John Smith",
-    dateOfBirth: "1990-05-15",
-    cityOfBirth: "New York",
-  };
+  const [result, setResult] = React.useState<PersonResult | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const fetchPersonData = async () => {
+      if (!searchPhoto) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await axios.post("http://127.0.0.1:5000/detect_face", {
+          img_url: searchPhoto
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (isMounted) {
+          setResult(response.data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError("Failed to fetch person data");
+          console.error(err);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPersonData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchPhoto]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!result) {
+    return <div>Waiting for photo...</div>;
+  }
 
   return (
     <Card className="w-full max-w-[1000px] p-8 bg-background">
