@@ -10,7 +10,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import time
 from dotenv import load_dotenv
 from pinecone import Pinecone
-import uuid
 
 load_dotenv()
 app = Flask(__name__)
